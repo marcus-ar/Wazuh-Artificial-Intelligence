@@ -12,73 +12,85 @@ You're gonna do download this of plugins on this:
 https://artifacts.opensearch.org/releases/bundle/opensearch-dashboards/2.13.0/opensearch-dashboards-2.13.0-linux-x64.tar.gz
 
 Linux Command:
-
+```bash
 curl https://artifacts.opensearch.org/releases/bundle/opensearch-dashboards/2.13.0/opensearch-dashboards-2.13.0-linux-x64.tar.gz -o opensearch-dashboards.tar.gz
-
+```
 After that, you'll descompress the file:
-
+```bash
 tar -xvzf opensearch-dashboards.tar.gz
-
+```
 So, you'll copy plugins to directories:
-
+```bash
 cp -r opensearch-dashboards-2.13.0/plugins/opensearch-observability/ /usr/share/wazuh-dashboard/plugins/
-
+```
+```bash
 cp -r opensearch-dashboards-2.13.0/plugins/opensearch-ml/ /usr/share/wazuh-dashboard/plugins/
-
+```
+```bash
 cp -r opensearch-dashboards-2.13.0/plugins/assistantDashboards/ /usr/share/wazuh-dashboard/plugins/
-
+```
 You need to give permission to plugins:
-
+```bash
 chown -R wazuh-dashboard:wazuh-dashboard /usr/share/wazuh-dashboard/plugins/<PLUGIN_NAME>/
-
-chmod -R 750 /usr/share/wazuh-dashboard/plugins/<PLUGIN_NAME>/ 
+```
+```bash
+chmod -R 750 /usr/share/wazuh-dashboard/plugins/<PLUGIN_NAME>/
+``` 
 
 On /etc/wazuh-dashboard/opensearch_dashboards.yml you'll edit and add the lines:
-
+```json
 assistant.chat.enabled: true
-
 observability.query_assist.enabled: true
-
+```
 On Wazuh Indexer you need to install two plugins, you can install using Maven coordinates
 
 Access directory:
-
+```bash
 cd /usr/share/wazuh-indexer/
-
+```
+```bash
 ./bin/opensearch-plugin install org.opensearch.plugin:opensearch-flow-framework:2.13.0.0
-
+```
+```bash
 ./bin/opensearch-plugin install org.opensearch.plugin:opensearch-skills:2.13.0.0
+```
 
 I had a problem with assistantDashboards plugin, so to resolve it was necessary:
 
 Install abortcontroller with this command:
-
+```bash
 npm install abort-controller
-
+```
 Edit the file and add this code:
-
+```bash
 nano /usr/share/wazuh-dashboard/plugins/assistantDashboards/server/services/chat/olly_chat_service.js
-
+```
+```json
 "use strict";
 
 if (typeof AbortController === 'undefined') {
   const { AbortController } = require('abort-controller');
   global.AbortController = AbortController;
 }
+```
 
 Ok! Now, you go to console.
 
 On DevTools you'll execute the commands:
 
+
+```json
 PUT /_cluster/settings
 {
   "persistent" : {
     "plugins.ml_commons.only_run_on_ml_node":"false"
   }
 }
+```
 
 You'll create a connector to an externally hosted model:
 
+```json
 POST /_plugins/_ml/connectors/_create
 {
     "name": "Amazon Bedrock Claude Haiku",
@@ -111,23 +123,27 @@ POST /_plugins/_ml/connectors/_create
         }
     ]
 }
+```
 
 ![image](https://github.com/user-attachments/assets/42075e75-1580-4f57-9ae7-b58fbd6fc21d)
 
 
 Register and deploy the externally hosted model
 
+```json
 POST /_plugins/_ml/model_groups/_register
 {
     "name": "AWS Bedrock",
     "description": "This is a public model group"
 }
+```
 
 ![image](https://github.com/user-attachments/assets/4f593bb2-438a-47ab-a0b2-a1108bf6aa5d)
 
 
 Next, register and deploy the externally hosted Claude mode:
 
+```json
 POST /_plugins/_ml/models/_register?deploy=true
 {
     "name": "Bedrock Claude V2 model",
@@ -136,22 +152,22 @@ POST /_plugins/_ml/models/_register?deploy=true
     "description": "Test Model",
     "connector_id": "5HJ22JIB2Zh-SJAsyAlT"
 }
-
+```
 ![image](https://github.com/user-attachments/assets/58eca8fa-8f6b-4e91-9294-43521f25e2d3)
 
 
 To test the LLM, send the following predict request:
-
+```json
 POST /_plugins/_ml/models/5nJ32JIB2Zh-SJAsXglb/_predict
 {
   "parameters": {
     "prompt": "\n\nHuman:hello\n\nAssistant:"
   }
 }
-
+```
 ![image](https://github.com/user-attachments/assets/3d1e318d-9fd5-4bfc-a0e1-5ccf26b105d6)
 
-
+```json
 POST /_plugins/_ml/agents/_register
 {
   "name": "Test_Agent_For_ReAct_ClaudeV2",
@@ -179,12 +195,12 @@ POST /_plugins/_ml/agents/_register
     }
   ]
 }
-
+```
 ![image](https://github.com/user-attachments/assets/8621cb55-98fe-4e96-b561-d0e97cb599df)
 
 
 Test agent:
-
+```json
 POST _plugins/_ml/agents/6nJ62JIB2Zh-SJAsSQn1/_execute
 {
   "parameters": {
@@ -192,12 +208,12 @@ POST _plugins/_ml/agents/6nJ62JIB2Zh-SJAsSQn1/_execute
     "verbose": false
   }
 }
-
+```
 ![image](https://github.com/user-attachments/assets/86debab2-1b35-4db7-ab61-e8685d2fd7fa)
 
 
 Now, you'll add the agent on interface:
-
+```json
 PUT .plugins-ml-config/_doc/os_chat
 {
     "type":"os_chat_root_agent",
@@ -205,7 +221,7 @@ PUT .plugins-ml-config/_doc/os_chat
         "agent_id": "6nJ62JIB2Zh-SJAsSQn1"
     }
 }
-
+```
 ![image](https://github.com/user-attachments/assets/36c9097b-a7c2-431d-8e31-14e2e7788dc6)
 
 ![image](https://github.com/user-attachments/assets/790cc142-80de-4f73-82f4-3c805ef77cff)
