@@ -8,28 +8,35 @@ This test was make on Wazuh 4.9.1, this version use as base Opensearch 2.13
 To make this it's necessary install some plugins on Wazuh.
 
 You're gonna do download this of plugins on this:
+
 https://artifacts.opensearch.org/releases/bundle/opensearch-dashboards/2.13.0/opensearch-dashboards-2.13.0-linux-x64.tar.gz
 
 Linux Command:
+
 curl https://artifacts.opensearch.org/releases/bundle/opensearch-dashboards/2.13.0/opensearch-dashboards-2.13.0-linux-x64.tar.gz -o opensearch-dashboards.tar.gz
 
 After that, you'll descompress the file:
+
 tar -xvzf opensearch-dashboards.tar.gz
 
 So, you'll copy plugins to directories:
 
 cp -r opensearch-dashboards-2.13.0/plugins/opensearch-observability/ /usr/share/wazuh-dashboard/plugins/
+
 cp -r opensearch-dashboards-2.13.0/plugins/opensearch-ml/ /usr/share/wazuh-dashboard/plugins/
+
 cp -r opensearch-dashboards-2.13.0/plugins/assistantDashboards/ /usr/share/wazuh-dashboard/plugins/
 
 You need to give permission to plugins:
 
 chown -R wazuh-dashboard:wazuh-dashboard /usr/share/wazuh-dashboard/plugins/<PLUGIN_NAME>/
+
 chmod -R 750 /usr/share/wazuh-dashboard/plugins/<PLUGIN_NAME>/ 
 
 On /etc/wazuh-dashboard/opensearch_dashboards.yml you'll edit and add the lines:
 
 assistant.chat.enabled: true
+
 observability.query_assist.enabled: true
 
 On Wazuh Indexer you need to install two plugins, you can install using Maven coordinates
@@ -39,6 +46,7 @@ Access directory:
 cd /usr/share/wazuh-indexer/
 
 ./bin/opensearch-plugin install org.opensearch.plugin:opensearch-flow-framework:2.13.0.0
+
 ./bin/opensearch-plugin install org.opensearch.plugin:opensearch-skills:2.13.0.0
 
 I had a problem with assistantDashboards plugin, so to resolve it was necessary:
