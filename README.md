@@ -1,4 +1,7 @@
 # Wazuh-Artificial-Intelligence
+
+Follow me on Linkedin: https://encurtador.com.br/YxWhU
+
 Hello, this repository has details about use AI Claude Haiku on Wazuh Dashboard.
 
 I hope that it help you!
